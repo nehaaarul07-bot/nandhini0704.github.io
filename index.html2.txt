@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>React Contact Cards Manager</title>
+
+  <!-- React CDN -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+
+    body{
+      font-family: Arial, sans-serif;
+      background:#f4f4f4;
+      margin:0;
+      padding:20px;
+    }
+
+    h1{
+      text-align:center;
+      color:#333;
+    }
+
+    .container{
+      max-width:1000px;
+      margin:auto;
+    }
+
+    .form-box{
+      background:white;
+      padding:20px;
+      border-radius:10px;
+      box-shadow:0 2px 5px rgba(0,0,0,0.2);
+      margin-bottom:20px;
+    }
+
+    input, textarea{
+      width:100%;
+      padding:10px;
+      margin:8px 0;
+      border:1px solid #ccc;
+      border-radius:5px;
+      box-sizing:border-box;
+    }
+
+    button{
+      background:#007bff;
+      color:white;
+      border:none;
+      padding:10px 20px;
+      border-radius:5px;
+      cursor:pointer;
+      margin-right:10px;
+    }
+
+    button:hover{
+      background:#0056b3;
+    }
+
+    .delete-btn{
+      background:#dc3545;
+    }
+
+    .delete-btn:hover{
+      background:#a71d2a;
+    }
+
+    .search{
+      margin-bottom:20px;
+    }
+
+    .card-list{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+      gap:20px;
+    }
+
+    .card{
+      background:white;
+      padding:15px;
+      border-radius:10px;
+      box-shadow:0 2px 5px rgba(0,0,0,0.2);
+      transition:0.3s;
+    }
+
+    .card:hover{
+      transform:scale(1.03);
+    }
+
+    .avatar{
+      width:80px;
+      height:80px;
+      border-radius:50%;
+      display:block;
+      margin:auto;
+      object-fit:cover;
+    }
+
+    .card h3{
+      text-align:center;
+      margin:10px 0 5px;
+    }
+
+    .card p{
+      margin:5px 0;
+      color:#555;
+    }
+
+    .btn-group{
+      margin-top:15px;
+      text-align:center;
+    }
+
+  </style>
+
+</head>
+
+<body>
+
+<div id="root"></div>
+
+<script type="text/babel">
+
+function ContactCard({contact,index,deleteContact,editContact}) {
+
+  return (
+
+    <div className="card">
+
+      <img
+        className="avatar"
+        src={contact.image || "https://via.placeholder.com/80"}
+        alt="avatar"
+      />
+
+      <h3>{contact.name}</h3>
+
+      <p><b>Company:</b> {contact.company}</p>
+
+      <p><b>Phone:</b> {contact.phone}</p>
+
+      <p><b>Email:</b> {contact.email}</p>
+
+      <p>{contact.description}</p>
+
+      <div className="btn-group">
+
+        <button onClick={()=>editContact(index)}>
+          Edit
+        </button>
+
+        <button
+          className="delete-btn"
+          onClick={()=>deleteContact(index)}
+        >
+          Delete
+        </button>
+
+      </div>
+
+    </div>
+
+  );
+
+}
+
+function App() {
+
+  const [contacts,setContacts] = React.useState(() => {
+
+    const savedContacts =
+      localStorage.getItem("contacts");
+
+    return savedContacts
+      ? JSON.parse(savedContacts)
+      : [];
+
+  });
+
+  const [search,setSearch] = React.useState("");
+
+  const [editIndex,setEditIndex] =
+    React.useState(null);
+
+  const [formData,setFormData] = React.useState({
+
+    name:"",
+    company:"",
+    phone:"",
+    email:"",
+    description:"",
+    image:""
+
+  });
+
+  React.useEffect(() => {
+
+    localStorage.setItem(
+      "contacts",
+      JSON.stringify(contacts)
+    );
+
+  }, [contacts]);
+
+  function handleChange(e){
+
+    setFormData({
+
+      ...formData,
+
+      [e.target.name]: e.target.value
+
+    });
+
+  }
+
+  function handleSubmit(e){
+
+    e.preventDefault();
+
+    if(editIndex !== null){
+
+      const updatedContacts = [...contacts];
+
+      updatedContacts[editIndex] = formData;
+
+      setContacts(updatedContacts);
+
+      setEditIndex(null);
+
+    }
+
+    else{
+
+      setContacts([...contacts,formData]);
+
+    }
+
+    setFormData({
+
+      name:"",
+      company:"",
+      phone:"",
+      email:"",
+      description:"",
+      image:""
+
+    });
+
+  }
+
+  function deleteContact(index){
+
+    const updatedContacts =
+      contacts.filter((_,i)=>i !== index);
+
+    setContacts(updatedContacts);
+
+  }
+
+  function editContact(index){
+
+    setFormData(contacts[index]);
+
+    setEditIndex(index);
+
+  }
+
+  const filteredContacts =
+    contacts.filter(contact =>
+
+      contact.name
+      .toLowerCase()
+      .includes(search.toLowerCase())
+
+      ||
+
+      contact.company
+      .toLowerCase()
+      .includes(search.toLowerCase())
+
+    );
+
+  return (
+
+    <div className="container">
+
+      <h1>React Contact Cards Manager</h1>
+
+      <div className="form-box">
+
+        <form onSubmit={handleSubmit}>
+
+          <input
+            type="text"
+            name="name"
+            placeholder="Full Name"
+            value={formData.name}
+            onChange={handleChange}
+            required
+          />
+
+          <input
+            type="text"
+            name="company"
+            placeholder="Company Name"
+            value={formData.company}
+            onChange={handleChange}
+            required
+          />
+
+          <input
+            type="text"
+            name="phone"
+            placeholder="Phone Number"
+            value={formData.phone}
+            onChange={handleChange}
+            required
+          />
+
+          <input
+            type="email"
+            name="email"
+            placeholder="Email"
+            value={formData.email}
+            onChange={handleChange}
+            required
+          />
+
+          <textarea
+            name="description"
+            placeholder="Short Description"
+            value={formData.description}
+            onChange={handleChange}
+          ></textarea>
+
+          <input
+            type="text"
+            name="image"
+            placeholder="Avatar Image URL"
+            value={formData.image}
+            onChange={handleChange}
+          />
+
+          <button type="submit">
+
+            {editIndex !== null
+              ? "Update Contact"
+              : "Add Contact"}
+
+          </button>
+
+        </form>
+
+      </div>
+
+      <input
+        className="search"
+        type="text"
+        placeholder="Search by Name or Company..."
+        value={search}
+        onChange={(e)=>setSearch(e.target.value)}
+      />
+
+      <div className="card-list">
+
+        {filteredContacts.length > 0 ? (
+
+          filteredContacts.map((contact,index)=>(
+
+            <ContactCard
+              key={index}
+              contact={contact}
+              index={index}
+              deleteContact={deleteContact}
+              editContact={editContact}
+            />
+
+          ))
+
+        ) : (
+
+          <p>No Contacts Found</p>
+
+        )}
+
+      </div>
+
+    </div>
+
+  );
+
+}
+
+ReactDOM
+.createRoot(document.getElementById("root"))
+.render(<App />);
+
+</script>
+
+</body>
+</html>
